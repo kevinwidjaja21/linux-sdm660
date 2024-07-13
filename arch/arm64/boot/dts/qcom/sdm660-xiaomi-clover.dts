@@ -31,6 +31,64 @@
 	};
 };
 
+&pm660l_wled {
+	status = "okay";
+};
+
+&mdss_dsi0 {
+	status = "disabled";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	vdd-supply = <&vreg_l1b_0p925>;
+	vdda-supply = <&vreg_l1a_1p225>;
+	//vdda-1p2-supply = <0x109>; // pm660_ldoa1
+	//vdda-0p9-supply = <0x105>; // pm660l_ldob1
+	//vdda-3p3-supply = <0x197>; // pm660l_ldob6
+	//wqhd-vddio-supply = <0x17e>; // pm660_ldoa11
+
+	panel: panel@0 {
+		compatible = "boe,nt51021";
+		reg = <0>;
+
+		backlight = <&pm660l_wled>;
+
+		reset-gpios = <&tlmm 62 GPIO_ACTIVE_HIGH>; // not used by panel-simple
+		//disp-te-gpios = <&pm660l_gpios GPIO_ACTIVE_HIGH>; // used by msm dsi host
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+
+		//pp1800-supply = <&vreg_l11a_1p8>; // wqhd-vddio-supply
+		// supply is the same for touchscreen
+
+		width-mm = <107>;
+		height-mm = <172>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	data-lanes = <0 1 2 3>;
+	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi0_phy {
+	vcca-supply = <&vreg_l1b_0p925>;
+	status = "okay";
+};
+
+&simplefb {
+	/* In order to allow simledrm framebuffer to know panel
+	 * physical size to allow userspace to do proper DPI scaling */
+	panel = <&panel>;
+};
+
 &tlmm {
 	ts_int_active: ts-int-active {
 		pins = "gpio67";
